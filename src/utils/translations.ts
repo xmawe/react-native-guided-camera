@@ -1,0 +1,504 @@
+import { SupportedLanguage } from "../types";
+
+/**
+ * Complete Translation System for GuidedCameraView
+ *
+ * This file provides comprehensive translations for all user-facing text in the
+ * GuidedCameraView component including:
+ *
+ * 1. UI Labels: Button texts, status indicators, titles
+ * 2. Status Messages: Recording states, camera status, error messages
+ * 3. Guidance Messages: User instructions, help text, tips
+ * 4. Error Messages: Camera permissions, sensor failures, device issues
+ * 5. Instruction Messages: Real-time guidance from utility functions
+ *    - Angle/Pitch detection messages (tilt left/right)
+ *    - Yaw detection messages (turn body left/right, compass alignment)
+ *    - Motion stability messages (excellent/good/fair/poor/very poor stability)
+ *    - Speed detection messages (stationary/walking/running/vehicle/high speed)
+ *    - Brightness detection messages (excellent/good/fair/poor/very poor lighting)
+ *
+ * Supported Languages:
+ * - English: Default language with complete translations
+ * - Arabic: Full RTL support with cultural adaptations
+ * - French: Complete translations with proper grammar
+ *
+ * Usage:
+ * - Use getTranslations(language) to get translation object
+ * - Use translation-aware utility functions for real-time instructions
+ * - Component automatically applies RTL layout for Arabic
+ */
+
+export interface Translations {
+  // Recording states
+  recording: string;
+  preparing: string;
+
+  // Permissions
+  cameraPermissionMessage: string;
+  grantPermission: string;
+
+  // Status labels
+  pitch: string;
+  motionScore: string;
+  distance: string;
+  compass: string;
+  speed: string;
+  brightness: string;
+
+  // Quality indicators
+  level: string;
+  tilted: string;
+  excellent: string;
+  good: string;
+  fair: string;
+  poor: string;
+  very_poor: string;
+  veryPoor: string;
+  bad: string;
+  onTrack: string;
+  turnBody: string;
+  stationary: string;
+
+  // Guidance messages
+  perfectHoldSteady: string;
+  rotateLeft: string;
+  rotateRight: string;
+  tiltUp: string;
+  tiltDown: string;
+  targetSet: string;
+  guidanceModeEnabled: string;
+  targetAngleSet: string;
+  targetSetToLevel: string;
+
+  // Movement directions
+  moveLeft: string;
+  moveRight: string;
+  moveUp: string;
+  moveDown: string;
+  faceNorth: string;
+  faceSouth: string;
+  faceEast: string;
+  faceWest: string;
+
+  // Error messages
+  motionTooHigh: string;
+  stabilizePhone: string;
+  movementTooFast: string;
+  errorRecording: string;
+  failedToRecord: string;
+  errorStopping: string;
+  errorSaving: string;
+  failedToSave: string;
+  noVideoToSave: string;
+
+  // Success messages
+  videoSaved: string;
+  success: string;
+
+  // Logs
+  metricsLogs: string;
+  clear: string;
+  noLogsYet: string;
+
+  // Angle/Pitch messages
+  greatKeepSteady: string;
+  tiltRight: string;
+  tiltLeft: string;
+  tiltBack: string;
+  tiltForward: string;
+  adjust: string;
+  adjustSeverity: string;
+
+  // Yaw/Compass messages
+  compassAligned: string;
+  turnBodyLeft: string;
+  turnBodyRight: string;
+  adjustOrientation: string;
+
+  // Motion/Stability messages
+  perfectStability: string;
+  goodStability: string;
+  fairStability: string;
+  poorStabilityDevice: string;
+  veryPoorStabilityHold: string;
+  analyzing: string;
+
+  // Speed/Movement messages
+  deviceStationary: string;
+  walkingPaceStabilization: string;
+  runningDetectedShaky: string;
+  vehicleMovementDetected: string;
+  highSpeedAvoidRecording: string;
+  motionDetected: string;
+  insufficientData: string;
+
+  // Brightness/Lighting messages
+  excellentLightingConditions: string;
+  goodLightingRecording: string;
+  adequateLightingImproved: string;
+  poorLightingAddLight: string;
+  veryPoorLightingInsufficient: string;
+  analyzingLightingConditions: string;
+}
+
+const englishTranslations: Translations = {
+  // Recording states
+  recording: "REC",
+  preparing: "Preparing camera...",
+
+  // Permissions
+  cameraPermissionMessage: "We need your permission to show the camera",
+  grantPermission: "Grant Permission",
+
+  // Status labels
+  pitch: "Pitch",
+  motionScore: "Motion Score",
+  distance: "Distance",
+  compass: "Compass",
+  speed: "Speed",
+  brightness: "Brightness",
+
+  // Quality indicators
+  level: "Level",
+  tilted: "Tilted",
+  excellent: "excellent",
+  good: "good",
+  fair: "fair",
+  poor: "poor",
+  very_poor: "very poor",
+  veryPoor: "very poor",
+  bad: "Bad",
+  onTrack: "On track",
+  turnBody: "Turn body",
+  stationary: "stationary",
+
+  // Guidance messages
+  perfectHoldSteady: "Perfect! Hold steady",
+  rotateLeft: "Rotate left",
+  rotateRight: "Rotate right",
+  tiltUp: "Tilt up",
+  tiltDown: "Tilt down",
+  targetSet: "Target set! Recording with guidance active.",
+  guidanceModeEnabled: "Guidance mode enabled. Set a target angle first.",
+  targetAngleSet: "Target angle set! Move your device to see guidance.",
+  targetSetToLevel: "Target set to level. Align your device.",
+
+  // Movement directions
+  moveLeft: "Move left",
+  moveRight: "Move right",
+  moveUp: "Move up",
+  moveDown: "Move down",
+  faceNorth: "Face north",
+  faceSouth: "Face south",
+  faceEast: "Face east",
+  faceWest: "Face west",
+
+  // Error messages
+  motionTooHigh: "Motion Too High",
+  stabilizePhone: "Please stabilize your phone before recording.",
+  movementTooFast: "Movement Too Fast",
+  errorRecording: "Error",
+  failedToRecord: "Failed to record video",
+  errorStopping: "Error stopping recording",
+  errorSaving: "Error saving video",
+  failedToSave: "Failed to save video",
+  noVideoToSave: "No video to save",
+
+  // Success messages
+  videoSaved: "Video saved to gallery!",
+  success: "Success",
+
+  // Logs
+  metricsLogs: "Metrics Logs",
+  clear: "Clear",
+  noLogsYet: "No logs yet...",
+
+  // Angle/Pitch messages
+  greatKeepSteady: "✓ Great! Keep it steady",
+  tiltRight: "Tilt Right",
+  tiltLeft: "Tilt Left",
+  tiltBack: "Tilt Back",
+  tiltForward: "Tilt Forward",
+  adjust: "Adjust",
+  adjustSeverity: " (Adjust)",
+
+  // Yaw/Compass messages
+  compassAligned: "Compass aligned",
+  turnBodyLeft: "Turn body left",
+  turnBodyRight: "Turn body right",
+  adjustOrientation: "Adjust orientation",
+
+  // Motion/Stability messages
+  perfectStability: "Perfect stability! 🎯",
+  goodStability: "Good stability ✅",
+  fairStability: "Fair stability ⚠️",
+  poorStabilityDevice: "Poor stability - steady your device ⚡",
+  veryPoorStabilityHold: "Very poor stability - hold device steady! 🔴",
+  analyzing: "Perfect stability!",
+
+  // Speed/Movement messages
+  deviceStationary: "Device is stationary - good for stable recording",
+  walkingPaceStabilization: "Walking pace detected - use stabilization",
+  runningDetectedShaky: "Running detected - recording may be shaky",
+  vehicleMovementDetected: "Vehicle movement detected",
+  highSpeedAvoidRecording: "High speed movement - avoid recording",
+  motionDetected: "Motion detected",
+  insufficientData: "Insufficient data for motion detection",
+
+  // Brightness/Lighting messages
+  excellentLightingConditions: "🌟 Excellent lighting conditions!",
+  goodLightingRecording: "✅ Good lighting for recording",
+  adequateLightingImproved: "⚠️ Adequate lighting - could be improved",
+  poorLightingAddLight: "💡 Poor lighting - add more light",
+  veryPoorLightingInsufficient:
+    "🔦 Very poor lighting - insufficient for recording",
+  analyzingLightingConditions: "Analyzing lighting conditions...",
+};
+
+const arabicTranslations: Translations = {
+  // Recording states
+  recording: "تسجيل",
+  preparing: "جاري تحضير الكاميرا...",
+
+  // Permissions
+  cameraPermissionMessage: "نحتاج إذنك لإظهار الكاميرا",
+  grantPermission: "منح الإذن",
+
+  // Status labels
+  pitch: "الميل",
+  motionScore: "نقاط الحركة",
+  distance: "المسافة",
+  compass: "البوصلة",
+  speed: "السرعة",
+  brightness: "السطوع",
+
+  // Quality indicators
+  level: "مستوي",
+  tilted: "مائل",
+  excellent: "ممتاز",
+  good: "جيد",
+  fair: "مقبول",
+  poor: "ضعيف",
+  very_poor: "ضعيف جداً",
+  veryPoor: "ضعيف جداً",
+  bad: "سيء",
+  onTrack: "على المسار",
+  turnBody: "أدر جسمك",
+  stationary: "ثابت",
+
+  // Guidance messages
+  perfectHoldSteady: "مثالي! احتفظ بالثبات",
+  rotateLeft: "أدر يساراً",
+  rotateRight: "أدر يميناً",
+  tiltUp: "امل لأعلى",
+  tiltDown: "امل لأسفل",
+  targetSet: "تم تحديد الهدف! التسجيل مع التوجيه نشط.",
+  guidanceModeEnabled: "تم تفعيل وضع التوجيه. حدد زاوية مستهدفة أولاً.",
+  targetAngleSet: "تم تحديد الزاوية المستهدفة! حرك جهازك لرؤية التوجيه.",
+  targetSetToLevel: "تم تحديد الهدف للمستوى. اصطف جهازك.",
+
+  // Movement directions
+  moveLeft: "انتقل يساراً",
+  moveRight: "انتقل يميناً",
+  moveUp: "انتقل لأعلى",
+  moveDown: "انتقل لأسفل",
+  faceNorth: "اتجه شمالاً",
+  faceSouth: "اتجه جنوباً",
+  faceEast: "اتجه شرقاً",
+  faceWest: "اتجه غرباً",
+
+  // Error messages
+  motionTooHigh: "الحركة عالية جداً",
+  stabilizePhone: "يرجى تثبيت هاتفك قبل التسجيل.",
+  movementTooFast: "الحركة سريعة جداً",
+  errorRecording: "خطأ",
+  failedToRecord: "فشل في تسجيل الفيديو",
+  errorStopping: "خطأ في إيقاف التسجيل",
+  errorSaving: "خطأ في حفظ الفيديو",
+  failedToSave: "فشل في حفظ الفيديو",
+  noVideoToSave: "لا يوجد فيديو للحفظ",
+
+  // Success messages
+  videoSaved: "تم حفظ الفيديو في المعرض!",
+  success: "نجح",
+
+  // Logs
+  metricsLogs: "سجلات المقاييس",
+  clear: "مسح",
+  noLogsYet: "لا توجد سجلات بعد...",
+
+  // Angle/Pitch messages
+  greatKeepSteady: "✓ رائع! حافظ على الثبات",
+  tiltRight: "امل يميناً",
+  tiltLeft: "امل يساراً",
+  tiltBack: "امل للخلف",
+  tiltForward: "امل للأمام",
+  adjust: "اضبط",
+  adjustSeverity: " (اضبط)",
+
+  // Yaw/Compass messages
+  compassAligned: "البوصلة محاذية",
+  turnBodyLeft: "أدر جسمك يساراً",
+  turnBodyRight: "أدر جسمك يميناً",
+  adjustOrientation: "اضبط الاتجاه",
+
+  // Motion/Stability messages
+  perfectStability: "ثبات مثالي! 🎯",
+  goodStability: "ثبات جيد ✅",
+  fairStability: "ثبات مقبول ⚠️",
+  poorStabilityDevice: "ثبات ضعيف - ثبت جهازك ⚡",
+  veryPoorStabilityHold: "ثبات ضعيف جداً - امسك الجهاز بثبات! 🔴",
+  analyzing: "ثبات مثالي!",
+
+  // Speed/Movement messages
+  deviceStationary: "الجهاز ثابت - جيد للتسجيل المستقر",
+  walkingPaceStabilization: "تم اكتشاف سرعة المشي - استخدم التثبيت",
+  runningDetectedShaky: "تم اكتشاف الجري - قد يكون التسجيل مهتزاً",
+  vehicleMovementDetected: "تم اكتشاف حركة المركبة",
+  highSpeedAvoidRecording: "حركة عالية السرعة - تجنب التسجيل",
+  motionDetected: "تم اكتشاف الحركة",
+  insufficientData: "بيانات غير كافية لاكتشاف الحركة",
+
+  // Brightness/Lighting messages
+  excellentLightingConditions: "🌟 ظروف إضاءة ممتازة!",
+  goodLightingRecording: "✅ إضاءة جيدة للتسجيل",
+  adequateLightingImproved: "⚠️ إضاءة كافية - يمكن تحسينها",
+  poorLightingAddLight: "💡 إضاءة ضعيفة - أضف مزيداً من الضوء",
+  veryPoorLightingInsufficient: "🔦 إضاءة ضعيفة جداً - غير كافية للتسجيل",
+  analyzingLightingConditions: "جاري تحليل ظروف الإضاءة...",
+};
+
+const frenchTranslations: Translations = {
+  // Recording states
+  recording: "ENR",
+  preparing: "Préparation de la caméra...",
+
+  // Permissions
+  cameraPermissionMessage:
+    "Nous avons besoin de votre permission pour afficher la caméra",
+  grantPermission: "Accorder la Permission",
+
+  // Status labels
+  pitch: "Inclinaison",
+  motionScore: "S.D Mouvement",
+  distance: "Distance",
+  compass: "Boussole",
+  speed: "Vitesse",
+  brightness: "Luminosité",
+
+  // Quality indicators
+  level: "Niveau",
+  tilted: "Incliné",
+  excellent: "excellent",
+  good: "bon",
+  fair: "correct",
+  poor: "faible",
+  very_poor: "très faible",
+  veryPoor: "très faible",
+  bad: "Mauvais",
+  onTrack: "Sur la bonne voie",
+  turnBody: "Tournez le corps",
+  stationary: "stationnaire",
+
+  // Guidance messages
+  perfectHoldSteady: "Parfait! Restez stable",
+  rotateLeft: "Tournez à gauche",
+  rotateRight: "Tournez à droite",
+  tiltUp: "Inclinez vers le haut",
+  tiltDown: "Inclinez vers le bas",
+  targetSet: "Cible définie! Enregistrement avec guidage actif.",
+  guidanceModeEnabled:
+    "Mode guidage activé. Définissez d'abord un angle cible.",
+  targetAngleSet:
+    "Angle cible défini! Bougez votre appareil pour voir le guidage.",
+  targetSetToLevel: "Cible définie au niveau. Alignez votre appareil.",
+
+  // Movement directions
+  moveLeft: "Déplacez à gauche",
+  moveRight: "Déplacez à droite",
+  moveUp: "Déplacez vers le haut",
+  moveDown: "Déplacez vers le bas",
+  faceNorth: "Face au nord",
+  faceSouth: "Face au sud",
+  faceEast: "Face à l'est",
+  faceWest: "Face à l'ouest",
+
+  // Error messages
+  motionTooHigh: "Mouvement Trop Élevé",
+  stabilizePhone: "Veuillez stabiliser votre téléphone avant d'enregistrer.",
+  movementTooFast: "Mouvement Trop Rapide",
+  errorRecording: "Erreur",
+  failedToRecord: "Échec de l'enregistrement vidéo",
+  errorStopping: "Erreur lors de l'arrêt de l'enregistrement",
+  errorSaving: "Erreur lors de la sauvegarde de la vidéo",
+  failedToSave: "Échec de la sauvegarde de la vidéo",
+  noVideoToSave: "Aucune vidéo à sauvegarder",
+
+  // Success messages
+  videoSaved: "Vidéo sauvegardée dans la galerie!",
+  success: "Succès",
+
+  // Logs
+  metricsLogs: "Journaux des Métriques",
+  clear: "Effacer",
+  noLogsYet: "Aucun journal pour le moment...",
+
+  // Angle/Pitch messages
+  greatKeepSteady: "✓ Parfait! Gardez-le stable",
+  tiltRight: "Inclinez à droite",
+  tiltLeft: "Inclinez à gauche",
+  tiltBack: "Inclinez vers l'arrière",
+  tiltForward: "Inclinez vers l'avant",
+  adjust: "Ajuster",
+  adjustSeverity: " (Ajuster)",
+
+  // Yaw/Compass messages
+  compassAligned: "Boussole alignée",
+  turnBodyLeft: "Tournez le corps à gauche",
+  turnBodyRight: "Tournez le corps à droite",
+  adjustOrientation: "Ajustez l'orientation",
+
+  // Motion/Stability messages
+  perfectStability: "Stabilité parfaite! 🎯",
+  goodStability: "Bonne stabilité ✅",
+  fairStability: "Stabilité correcte ⚠️",
+  poorStabilityDevice: "Mauvaise stabilité - stabilisez votre appareil ⚡",
+  veryPoorStabilityHold:
+    "Très mauvaise stabilité - tenez l'appareil fermement! 🔴",
+  analyzing: "Stabilité parfaite!",
+
+  // Speed/Movement messages
+  deviceStationary: "Appareil stationnaire - bon pour un enregistrement stable",
+  walkingPaceStabilization:
+    "Allure de marche détectée - utilisez la stabilisation",
+  runningDetectedShaky:
+    "Course détectée - l'enregistrement peut être tremblant",
+  vehicleMovementDetected: "Mouvement de véhicule détecté",
+  highSpeedAvoidRecording:
+    "Mouvement à haute vitesse - évitez l'enregistrement",
+  motionDetected: "Mouvement détecté",
+  insufficientData: "Données insuffisantes pour la détection de mouvement",
+
+  // Brightness/Lighting messages
+  excellentLightingConditions: "🌟 Excellentes conditions d'éclairage!",
+  goodLightingRecording: "✅ Bon éclairage pour l'enregistrement",
+  adequateLightingImproved: "⚠️ Éclairage adéquat - pourrait être amélioré",
+  poorLightingAddLight: "💡 Mauvais éclairage - ajoutez plus de lumière",
+  veryPoorLightingInsufficient:
+    "🔦 Très mauvais éclairage - insuffisant pour l'enregistrement",
+  analyzingLightingConditions: "Analyse des conditions d'éclairage...",
+};
+
+const translations: Record<SupportedLanguage, Translations> = {
+  english: englishTranslations,
+  arabic: arabicTranslations,
+  french: frenchTranslations,
+};
+
+export const getTranslations = (
+  language: SupportedLanguage = "english"
+): Translations => {
+  return translations[language] || translations.english;
+};
+
+export { translations };
