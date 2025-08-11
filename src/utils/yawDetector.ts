@@ -180,13 +180,13 @@ export class YawDetector {
 export const getYawColor = (severity: string): string => {
   switch (severity) {
     case "good":
-      return "#4CAF50";
+      return "#4CAF5070";
     case "minor":
-      return "#FF9800";
+      return "#FF980070";
     case "major":
-      return "#F44336";
+      return "#F4433670";
     default:
-      return "#FF9800";
+      return "#FF980070";
   }
 };
 

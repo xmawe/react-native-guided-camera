@@ -208,7 +208,7 @@ export const getSpeedColor = (speed: number): string => {
   if (speed < 1) return "#4CAF50"; // Green for stationary
   if (speed < 3) return "#FFC107"; // Yellow for walking
   if (speed < 8) return "#FF9800"; // Orange for running
-  return "#F44336"; // Red for fast movement
+  return "#F4433670"; // Red for fast movement
 };
 
 export const getSpeedMessage = (metrics: SpeedMetrics): string => {
@@ -243,18 +243,18 @@ export function getSpeedRecommendationMessage(
   translations: any
 ): string {
   if (!isMoving) {
-    return translations.instructionMessages.speedStationary;
+    return translations.deviceStationary;
   } else if (speed < 1.5) {
-    return translations.instructionMessages.speedWalking;
+    return translations.walkingPaceStabilization;
   } else if (speed < 4.0) {
-    return translations.instructionMessages.speedRunning;
+    return translations.runningDetectedShaky;
   } else if (speed < 8.0) {
-    return translations.instructionMessages.speedVehicle;
+    return translations.vehicleMovementDetected;
   } else {
-    return translations.instructionMessages.speedHighSpeed;
+    return translations.highSpeedAvoidRecording;
   }
 }
 
 export function getSpeedMotionMessage(translations: any): string {
-  return translations.instructionMessages.speedMotionDetected;
+  return translations.motionDetected;
 }

@@ -379,16 +379,16 @@ export function getMotionStabilityMessage(
 ): string {
   switch (stability) {
     case "excellent":
-      return translations.instructionMessages.motionExcellent;
+      return translations.perfectStability;
     case "good":
-      return translations.instructionMessages.motionGood;
+      return translations.goodStability;
     case "fair":
-      return translations.instructionMessages.motionFair;
+      return translations.fairStability;
     case "poor":
-      return translations.instructionMessages.motionPoor;
+      return translations.poorStabilityDevice;
     case "very_poor":
-      return translations.instructionMessages.motionVeryPoor;
+      return translations.veryPoorStabilityHold;
     default:
-      return translations.instructionMessages.motionGood;
+      return translations.goodStability;
   }
 }

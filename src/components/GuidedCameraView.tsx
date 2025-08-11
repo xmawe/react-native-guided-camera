@@ -25,6 +25,7 @@ import {
   AngleMetrics,
   calculateAngleColor,
   getAngleMessage,
+  getAngleMessageTranslated,
 } from "../utils/pitchDetector";
 
 import {
@@ -32,6 +33,7 @@ import {
   YawMetrics,
   getYawColor,
   getYawMessage,
+  getYawMessageTranslated,
 } from "../utils/yawDetector";
 
 import {
@@ -39,13 +41,18 @@ import {
   LightingMetrics,
 } from "../utils/realtimeBrightnessDetectorV2";
 
-import { MotionDetector, MotionMetrics } from "../utils/motionDetectorV2";
+import {
+  MotionDetector,
+  MotionMetrics,
+  getMotionStabilityMessage,
+} from "../utils/motionDetectorV2";
 
 import {
   FallbackSpeedDetector as SpeedDetector,
   SpeedMetrics,
   getSpeedColor,
   getSpeedMessage,
+  getSpeedRecommendationMessage,
   shouldAllowRecordingSpeed,
   getSpeedIcon,
 } from "../utils/fallbackSpeedDetector";
@@ -214,7 +221,7 @@ const generateGuidanceMessage = (
 
   // Yaw guidance (compass direction) - highest priority
   if (!yawMetrics.isOnTarget && target.yaw !== undefined) {
-    messages.push(getYawMessage(yawMetrics));
+    messages.push(getYawMessageTranslated(yawMetrics, translations));
   }
 
   // Roll guidance (left/right rotation)
@@ -1457,7 +1464,11 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
               ]}
             >
               <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
-                {getSpeedMessage(speedMetrics)}
+                {getSpeedRecommendationMessage(
+                  speedMetrics.speed,
+                  speedMetrics.isMoving,
+                  translations
+                )}
               </Text>
             </View>
           )}
@@ -1471,7 +1482,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
             ]}
           >
             <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
-              {getMotionMessage(motionMetrics)}
+              {getMotionStabilityMessage(motionMetrics.stability, translations)}
             </Text>
           </View>
         )}
@@ -1507,7 +1518,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
             ]}
           >
             <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
-              {getAngleMessage(angleMetrics)}
+              {getAngleMessageTranslated(angleMetrics, translations)}
             </Text>
           </View>
         )}

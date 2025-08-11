@@ -251,29 +251,30 @@ export class RealtimeBrightnessDetector {
 
     let baseLuminance: number;
 
-    // More realistic lighting estimation based on time
+    // Much more conservative lighting estimation
+    // Assume indoor/moderate lighting conditions by default
     if (hour >= 6 && hour < 9) {
-      // Early morning - gradually increasing
-      baseLuminance = 60 + (hour - 6) * 25 + (minute / 60) * 15;
+      // Early morning - start low, gradually increase
+      baseLuminance = 30 + (hour - 6) * 15 + (minute / 60) * 10; // 30-75
     } else if (hour >= 9 && hour < 17) {
-      // Daytime - bright but with some variation
-      baseLuminance = 140 + Math.sin(((hour - 9) * Math.PI) / 8) * 40;
+      // Daytime - assume moderate indoor lighting, not bright outdoor
+      baseLuminance = 60 + Math.sin(((hour - 9) * Math.PI) / 8) * 20; // 40-80
     } else if (hour >= 17 && hour < 20) {
-      // Evening - gradually decreasing
-      baseLuminance = 120 - (hour - 17) * 20 - (minute / 60) * 15;
+      // Evening - decreasing light
+      baseLuminance = 70 - (hour - 17) * 15 - (minute / 60) * 10; // 25-70
     } else if (hour >= 20 && hour < 22) {
-      // Twilight
-      baseLuminance = 70 - (hour - 20) * 15;
+      // Twilight - getting quite dark
+      baseLuminance = 40 - (hour - 20) * 10; // 20-40
     } else {
-      // Night - very low
-      baseLuminance = 40 + Math.random() * 20;
+      // Night - very low, typical indoor evening lighting
+      baseLuminance = 15 + Math.random() * 20; // 15-35
     }
 
-    // Add some realistic variation
-    const variation = (Math.random() - 0.5) * 30;
+    // Add realistic variation but keep it conservative
+    const variation = (Math.random() - 0.5) * 15; // Reduced variation
     const finalLuminance = Math.max(
-      25,
-      Math.min(255, baseLuminance + variation)
+      10, // Lower minimum to detect truly dark environments
+      Math.min(120, baseLuminance + variation) // Much lower maximum for indoor assumption
     );
 
     const contrast = this.estimateContrastFromLuminance(finalLuminance);
@@ -367,31 +368,31 @@ export class RealtimeBrightnessDetector {
       quality = "excellent";
       isOptimal = true;
       recommendation =
-        this.translations?.instructionMessages?.brightnessExcellent ||
+        this.translations?.excellentLightingConditions ||
         "🌟 Excellent lighting conditions!";
     } else if (overallScore >= 70) {
       quality = "good";
       isOptimal = true;
       recommendation =
-        this.translations?.instructionMessages?.brightnessGood ||
+        this.translations?.goodLightingRecording ||
         "✅ Good lighting for recording";
     } else if (overallScore >= 55) {
       quality = "fair";
       isOptimal = false;
       recommendation =
-        this.translations?.instructionMessages?.brightnessFair ||
+        this.translations?.adequateLightingImproved ||
         "⚠️ Adequate lighting - could be improved";
     } else if (overallScore >= 35) {
       quality = "poor";
       isOptimal = false;
       recommendation =
-        this.translations?.instructionMessages?.brightnessPoor ||
+        this.translations?.poorLightingAddLight ||
         "💡 Poor lighting - add more light";
     } else {
       quality = "very_poor";
       isOptimal = false;
       recommendation =
-        this.translations?.instructionMessages?.brightnessVeryPoor ||
+        this.translations?.veryPoorLightingInsufficient ||
         "🔦 Very poor lighting - insufficient for recording";
     }
 
@@ -410,16 +411,31 @@ export class RealtimeBrightnessDetector {
   }
 
   private scoreLuminance(luminance: number): number {
-    // Optimal range: 120-180
-    if (luminance >= 120 && luminance <= 180) {
+    // More realistic optimal ranges for camera recording
+    // Excellent: 150-200 (bright, well-lit conditions)
+    if (luminance >= 150 && luminance <= 200) {
       return 100;
-    } else if (luminance >= 100 && luminance <= 200) {
+    }
+    // Good: 100-149 or 201-230 (good indoor lighting)
+    else if (
+      (luminance >= 100 && luminance <= 149) ||
+      (luminance >= 201 && luminance <= 230)
+    ) {
       return 80;
-    } else if (luminance >= 80 && luminance <= 220) {
+    }
+    // Fair: 70-99 or 231-250 (acceptable but not ideal)
+    else if (
+      (luminance >= 70 && luminance <= 99) ||
+      (luminance >= 231 && luminance <= 250)
+    ) {
       return 60;
-    } else if (luminance >= 60 && luminance <= 240) {
+    }
+    // Poor: 40-69 (dim lighting, needs improvement)
+    else if (luminance >= 40 && luminance <= 69) {
       return 40;
-    } else {
+    }
+    // Very poor: below 40 or above 250 (too dark or too bright)
+    else {
       return 20;
     }
   }
@@ -496,16 +512,16 @@ export function getBrightnessRecommendationMessage(
 ): string {
   switch (quality) {
     case "excellent":
-      return translations.instructionMessages.brightnessExcellent;
+      return translations.excellentLightingConditions;
     case "good":
-      return translations.instructionMessages.brightnessGood;
+      return translations.goodLightingRecording;
     case "fair":
-      return translations.instructionMessages.brightnessFair;
+      return translations.adequateLightingImproved;
     case "poor":
-      return translations.instructionMessages.brightnessPoor;
+      return translations.poorLightingAddLight;
     case "very_poor":
-      return translations.instructionMessages.brightnessVeryPoor;
+      return translations.veryPoorLightingInsufficient;
     default:
-      return translations.instructionMessages.brightnessFair;
+      return translations.adequateLightingImproved;
   }
 }
