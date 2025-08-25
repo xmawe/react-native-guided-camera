@@ -1298,7 +1298,8 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
             {motionMetrics.score}
           </Text>
         </View>
-        <View style={styles.statusItem}>
+        {/* Distance indicator commented out */}
+        {/* <View style={styles.statusItem}>
           <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
             {translations.distance}
           </Text>
@@ -1314,7 +1315,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
           <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
             4.32m
           </Text>
-        </View>
+        </View> */}
         {isGuidanceMode && targetAngle.yaw !== undefined && (
           <View style={styles.statusItem}>
             <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
