@@ -1,6 +1,6 @@
 {
   "name": "react-native-guided-camera",
-  "version": "2.1.9",
+  "version": "2.1.14",
   "description": "A React Native component for agricultural camera guidance with sensor-based motion detection, orientation tracking, and real-time feedback.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -44,11 +44,20 @@
   "peerDependencies": {
     "expo": ">=49.0.0",
     "expo-camera": ">=16.0.0",
+    "expo-font": ">=12.0.0",
     "expo-media-library": ">=17.0.0",
     "expo-sensors": ">=14.0.0",
     "react": ">=16.8.0",
     "react-native": ">=0.70.0",
     "react-native-svg": ">=15.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@expo-google-fonts/ibm-plex-sans-arabic": {
+      "optional": true
+    }
+  },
+  "optionalDependencies": {
+    "@expo-google-fonts/ibm-plex-sans-arabic": "^0.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

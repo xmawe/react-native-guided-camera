@@ -49,6 +49,9 @@ export {
 // Translation utilities
 export { getTranslations, translations } from "./utils/translations";
 
+// Font utilities
+export { useArabicFonts, getArabicTextStyle } from "./utils/fonts";
+
 // Translation-aware message functions
 export { getAngleMessageTranslated } from "./utils/pitchDetector";
 export { getYawMessageTranslated } from "./utils/yawDetector";

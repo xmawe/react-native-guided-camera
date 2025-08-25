@@ -142,6 +142,16 @@ export function FrenchCamera() {
 }
 ```
 
+### Arabic Font Support
+
+For optimal Arabic text rendering with IBM Plex Sans Arabic font, install the optional font package:
+
+```bash
+npm install @expo-google-fonts/ibm-plex-sans-arabic
+```
+
+The component will automatically use the Arabic fonts when the language is set to "arabic". If the font package is not installed, the component will gracefully fall back to system fonts while maintaining proper RTL (Right-to-Left) text direction.
+
 ### Translation Utilities
 
 For custom implementations, you can use the translation utilities to get localized instruction messages:

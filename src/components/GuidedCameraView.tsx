@@ -59,6 +59,7 @@ import {
 
 import { VideoData, SupportedLanguage } from "../types";
 import { getTranslations } from "../utils/translations";
+import { useArabicFonts, getArabicTextStyle } from "../utils/fonts";
 
 // SVG Icon Component
 const CubeIcon = ({
@@ -279,6 +280,21 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
 }) => {
   const translations = getTranslations(language);
   const isRTL = language === "arabic";
+  const fontsLoaded = useArabicFonts();
+
+  // Helper function to get text style with appropriate font
+  const getTextStyle = (weight: "regular" | "bold" = "regular") => {
+    if (language === "arabic") {
+      return getArabicTextStyle(language, weight);
+    }
+    return {
+      fontWeight: (weight === "bold" ? "bold" : "normal") as "normal" | "bold",
+      ...(isRTL && {
+        textAlign: "right" as const,
+        writingDirection: "rtl" as const,
+      }),
+    };
+  };
 
   // Helper function to get translated quality text
   const getQualityTranslation = (quality: string): string => {
@@ -900,11 +916,11 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={[styles.message, isRTL && styles.textRTL]}>
+        <Text style={[styles.message, getTextStyle("regular")]}>
           {translations.cameraPermissionMessage}
         </Text>
         <TouchableOpacity onPress={requestPermission} style={styles.button}>
-          <Text style={[styles.buttonText, isRTL && styles.textRTL]}>
+          <Text style={[styles.buttonText, getTextStyle("bold")]}>
             {translations.grantPermission}
           </Text>
         </TouchableOpacity>
@@ -1247,7 +1263,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       {isRecording && (
         <View style={styles.recordingIndicator}>
           <View style={styles.recordingDot} />
-          <Text style={[styles.recordingText, isRTL && styles.textRTL]}>
+          <Text style={[styles.recordingText, getTextStyle("bold")]}>
             {translations.recording} {formatRecordingTime(recordingDuration)}
           </Text>
         </View>
@@ -1256,7 +1272,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       {/* Camera ready indicator */}
       {!isCameraReady && (
         <View style={styles.cameraNotReady}>
-          <Text style={[styles.cameraNotReadyText, isRTL && styles.textRTL]}>
+          <Text style={[styles.cameraNotReadyText, getTextStyle("bold")]}>
             {translations.preparing}
           </Text>
         </View>
@@ -1265,36 +1281,36 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       {/* Status bar */}
       <View style={[styles.topBar, isRTL && styles.topBarRTL]}>
         <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
             {translations.pitch}
           </Text>
           <Text
             style={[
               styles.statusComment,
               { color: calculateAngleColor(angleMetrics.severity) },
-              isRTL && styles.textRTL,
+              getTextStyle("bold"),
             ]}
           >
             {angleMetrics.isLevel ? translations.level : translations.tilted}
           </Text>
-          <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusValue, getTextStyle("bold")]}>
             {Math.abs(angleMetrics.pitch).toFixed(1)}°
           </Text>
         </View>
         <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
             {translations.motionScore}
           </Text>
           <Text
             style={[
               styles.statusComment,
               { color: getMotionColor(motionMetrics.stability) },
-              isRTL && styles.textRTL,
+              getTextStyle("bold"),
             ]}
           >
             {getQualityTranslation(motionMetrics.stability)}
           </Text>
-          <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusValue, getTextStyle("bold")]}>
             {motionMetrics.score}
           </Text>
         </View>
@@ -1318,7 +1334,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         </View> */}
         {isGuidanceMode && targetAngle.yaw !== undefined && (
           <View style={styles.statusItem}>
-            <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
+            <Text style={[styles.statusLabel, getTextStyle("bold")]}>
               {translations.compass}
             </Text>
             <Text
@@ -1327,51 +1343,51 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
                 {
                   color: yawMetrics.isOnTarget ? "#4CAF50" : "#FF9800",
                 },
-                isRTL && styles.textRTL,
+                getTextStyle("bold"),
               ]}
             >
               {yawMetrics.isOnTarget
                 ? translations.onTrack
                 : translations.turnBody}
             </Text>
-            <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
+            <Text style={[styles.statusValue, getTextStyle("bold")]}>
               {`${Math.round(yawMetrics.yaw)}°`}
             </Text>
           </View>
         )}
         <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
             {translations.speed}
           </Text>
           <Text
             style={[
               styles.statusComment,
               { color: getSpeedColor(speedMetrics.speed) },
-              isRTL && styles.textRTL,
+              getTextStyle("bold"),
             ]}
           >
             {speedMetrics.movementType === "stationary"
               ? translations.stationary
               : speedMetrics.movementType}
           </Text>
-          <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusValue, getTextStyle("bold")]}>
             {speedMetrics.speedKmh.toFixed(1)} km/h
           </Text>
         </View>
         <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
             {translations.brightness}
           </Text>
           <Text
             style={[
               styles.statusComment,
               { color: getLightingColor(lightingMetrics.quality) },
-              isRTL && styles.textRTL,
+              getTextStyle("bold"),
             ]}
           >
             {getQualityTranslation(lightingMetrics.quality)}
           </Text>
-          <Text style={[styles.statusValue, isRTL && styles.textRTL]}>
+          <Text style={[styles.statusValue, getTextStyle("bold")]}>
             {Math.round(lightingMetrics.meanLuminance)}
           </Text>
         </View>
@@ -1464,7 +1480,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
                 { backgroundColor: getSpeedColor(speedMetrics.speed) },
               ]}
             >
-              <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
+              <Text style={[styles.guidanceText, getTextStyle("bold")]}>
                 {getSpeedRecommendationMessage(
                   speedMetrics.speed,
                   speedMetrics.isMoving,
@@ -1482,7 +1498,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
               { backgroundColor: getMotionColor(motionMetrics.stability) },
             ]}
           >
-            <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
+            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
               {getMotionStabilityMessage(motionMetrics.stability, translations)}
             </Text>
           </View>
@@ -1504,7 +1520,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
               },
             ]}
           >
-            <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
+            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
               {guidanceMessage}
             </Text>
           </View>
@@ -1518,7 +1534,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
               { backgroundColor: calculateAngleColor(angleMetrics.severity) },
             ]}
           >
-            <Text style={[styles.guidanceText, isRTL && styles.textRTL]}>
+            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
               {getAngleMessageTranslated(angleMetrics, translations)}
             </Text>
           </View>
@@ -1600,14 +1616,14 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       {onScreen && (
         <View style={styles.logsContainer}>
           <View style={[styles.logsHeader, isRTL && styles.topBarRTL]}>
-            <Text style={[styles.logsTitle, isRTL && styles.textRTL]}>
+            <Text style={[styles.logsTitle, getTextStyle("bold")]}>
               {translations.metricsLogs}
             </Text>
             <TouchableOpacity
               style={styles.clearLogsButton}
               onPress={() => setMetricsLogs([])}
             >
-              <Text style={[styles.clearLogsText, isRTL && styles.textRTL]}>
+              <Text style={[styles.clearLogsText, getTextStyle("bold")]}>
                 {translations.clear}
               </Text>
             </TouchableOpacity>
@@ -1617,14 +1633,14 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
             showsVerticalScrollIndicator={false}
           >
             {metricsLogs.length === 0 ? (
-              <Text style={[styles.noLogsText, isRTL && styles.textRTL]}>
+              <Text style={[styles.noLogsText, getTextStyle("regular")]}>
                 {translations.noLogsYet}
               </Text>
             ) : (
               metricsLogs.slice(0, 15).map((log, index) => (
                 <Text
                   key={index}
-                  style={[styles.logEntry, isRTL && styles.textRTL]}
+                  style={[styles.logEntry, getTextStyle("regular")]}
                 >
                   {log}
                 </Text>

@@ -15,6 +15,7 @@ export { calculateAngleColor, getAngleMessage } from "./utils/pitchDetector";
 export { getYawColor, getYawMessage, shouldAllowRecordingYaw, } from "./utils/yawDetector";
 export { getSpeedColor, getSpeedMessage, shouldAllowRecordingSpeed, getSpeedIcon, } from "./utils/fallbackSpeedDetector";
 export { getTranslations, translations } from "./utils/translations";
+export { useArabicFonts, getArabicTextStyle } from "./utils/fonts";
 export { getAngleMessageTranslated } from "./utils/pitchDetector";
 export { getYawMessageTranslated } from "./utils/yawDetector";
 export { getMotionStabilityMessage } from "./utils/motionDetectorV2";

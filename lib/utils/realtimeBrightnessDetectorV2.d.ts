@@ -25,6 +25,7 @@ export declare class RealtimeBrightnessDetector {
     private translations;
     private lightSensorSubscription;
     private deviceMotionSubscription;
+    private cameraRef;
     private brightnessHistory;
     private lastMetrics;
     private currentIlluminance;
@@ -36,6 +37,8 @@ export declare class RealtimeBrightnessDetector {
     private startRealtimeAnalysis;
     private analyzeCurrentLighting;
     private getAmbientLightBasedBrightness;
+    private analyzeCameraFeed;
+    private analyzeImageBrightness;
     private estimateContrastFromLighting;
     private getTimeBasedEstimation;
     private estimateContrastFromLuminance;
