@@ -269,7 +269,7 @@ interface GuidedCameraViewProps {
   onVideoSave?: (videoData: VideoData) => void;
   language?: SupportedLanguage;
   metricsUpdateInterval?: number; // Update interval in milliseconds (default: 100ms)
-  includeSeverityLevels?: ('info' | 'warning' | 'error')[]; // Which severity levels to include in instruction events (default: all)
+  includeSeverityLevels?: ("info" | "warning" | "error")[]; // Which severity levels to include in instruction events (default: all)
 }
 
 const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
@@ -279,7 +279,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
   onVideoSave,
   language = "english",
   metricsUpdateInterval = 100, // Default 100ms update interval
-  includeSeverityLevels = ['info', 'warning', 'error'], // Default: include all severity levels
+  includeSeverityLevels = ["info", "warning", "error"], // Default: include all severity levels
 }) => {
   const translations = getTranslations(language);
   const isRTL = language === "arabic";
@@ -316,8 +316,12 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const [instructionEvents, setInstructionEvents] = useState<InstructionEvent[]>([]);
-  const [lastInstructionTime, setLastInstructionTime] = useState<Record<string, number>>({});
+  const [instructionEvents, setInstructionEvents] = useState<
+    InstructionEvent[]
+  >([]);
+  const [lastInstructionTime, setLastInstructionTime] = useState<
+    Record<string, number>
+  >({});
 
   const [motionMetrics, setMotionMetrics] = useState<MotionMetrics>({
     score: 100,
@@ -397,8 +401,8 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
 
   // Helper function to record instruction events during recording
   const recordInstructionEvent = (
-    category: InstructionEvent['category'],
-    severity: InstructionEvent['severity'],
+    category: InstructionEvent["category"],
+    severity: InstructionEvent["severity"],
     message: string,
     throttleMs: number = 2000 // Don't record same category more than once every 2 seconds
   ) => {
@@ -421,7 +425,9 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     const elapsedMs = Date.now() - recordingStartTime.current;
     const minutes = Math.floor(elapsedMs / 60000);
     const seconds = Math.floor((elapsedMs % 60000) / 1000);
-    const timestamp = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const timestamp = `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
 
     const instructionEvent: InstructionEvent = {
       timestamp,
@@ -439,8 +445,8 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       },
     };
 
-    setInstructionEvents(prev => [...prev, instructionEvent]);
-    setLastInstructionTime(prev => ({ ...prev, [category]: now }));
+    setInstructionEvents((prev) => [...prev, instructionEvent]);
+    setLastInstructionTime((prev) => ({ ...prev, [category]: now }));
   };
 
   // Yaw tracking state
@@ -707,17 +713,21 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     // Record speed guidance messages
     if (speedMetrics.isMoving && speedMetrics.movementType !== "stationary") {
       recordInstructionEvent(
-        'speed',
-        'warning',
-        getSpeedRecommendationMessage(speedMetrics.speed, speedMetrics.isMoving, translations)
+        "speed",
+        "warning",
+        getSpeedRecommendationMessage(
+          speedMetrics.speed,
+          speedMetrics.isMoving,
+          translations
+        )
       );
     }
 
     // Record motion guidance messages
     if (!motionMetrics.isStable) {
       recordInstructionEvent(
-        'motion',
-        motionMetrics.stability === "very_poor" ? 'error' : 'warning',
+        "motion",
+        motionMetrics.stability === "very_poor" ? "error" : "warning",
         getMotionStabilityMessage(motionMetrics.stability, translations)
       );
     }
@@ -725,30 +735,33 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     // Record angle guidance messages
     if (!angleMetrics.isLevel) {
       recordInstructionEvent(
-        'angle',
-        angleMetrics.severity === "major" ? 'warning' : 'info',
+        "angle",
+        angleMetrics.severity === "major" ? "warning" : "info",
         getAngleMessageTranslated(angleMetrics, translations)
       );
     }
 
     // Record target angle guidance (only in guidance mode)
-    if (isGuidanceMode && guidanceMessage && guidanceMessage !== translations.perfectHoldSteady) {
-      recordInstructionEvent(
-        'guidance',
-        'info',
-        guidanceMessage
-      );
+    if (
+      isGuidanceMode &&
+      guidanceMessage &&
+      guidanceMessage !== translations.perfectHoldSteady
+    ) {
+      recordInstructionEvent("guidance", "info", guidanceMessage);
     }
 
     // Record yaw guidance (only in guidance mode with target)
-    if (isGuidanceMode && !yawMetrics.isOnTarget && targetAngle.yaw !== undefined) {
+    if (
+      isGuidanceMode &&
+      !yawMetrics.isOnTarget &&
+      targetAngle.yaw !== undefined
+    ) {
       recordInstructionEvent(
-        'yaw',
-        'warning',
+        "yaw",
+        "warning",
         getYawMessageTranslated(yawMetrics, translations)
       );
     }
-
   }, [
     isRecording,
     speedMetrics.isMoving,
@@ -762,7 +775,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     guidanceMessage,
     yawMetrics.isOnTarget,
     targetAngle.yaw,
-    translations
+    translations,
   ]);
 
   // Recording duration tracking

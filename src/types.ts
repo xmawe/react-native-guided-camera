@@ -1,8 +1,8 @@
 export interface InstructionEvent {
   timestamp: string; // Format: "MM:SS" relative to recording start
   timestampMs: number; // Absolute timestamp in milliseconds from recording start
-  category: 'motion' | 'angle' | 'speed' | 'lighting' | 'yaw' | 'guidance';
-  severity: 'info' | 'warning' | 'error';
+  category: "motion" | "angle" | "speed" | "lighting" | "yaw" | "guidance";
+  severity: "info" | "warning" | "error";
   message: string;
   metrics?: {
     // Optional detailed metrics at the time of instruction
@@ -31,5 +31,5 @@ export interface GuidedCameraViewProps {
   onVideoSave?: (videoData: VideoData) => void;
   language?: SupportedLanguage;
   metricsUpdateInterval?: number; // Update interval in milliseconds (default: 100ms)
-  includeSeverityLevels?: ('info' | 'warning' | 'error')[]; // Which severity levels to include in instruction events (default: all)
+  includeSeverityLevels?: ("info" | "warning" | "error")[]; // Which severity levels to include in instruction events (default: all)
 }
