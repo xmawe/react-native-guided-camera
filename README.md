@@ -103,6 +103,105 @@ export default function App() {
 }
 ```
 
+### With Instruction Events Analysis
+
+```tsx
+import React from "react";
+import { GuidedCameraView, VideoData, InstructionEvent } from "react-native-guided-camera";
+
+export default function App() {
+  const handleVideoSave = (videoData: VideoData) => {
+    console.log("Video recorded:", videoData.uri);
+    console.log("Recording duration:", videoData.duration);
+    
+    // Analyze instruction events that occurred during recording
+    if (videoData.instructionEvents && videoData.instructionEvents.length > 0) {
+      console.log("Problems detected during recording:");
+      
+      videoData.instructionEvents.forEach((event: InstructionEvent) => {
+        console.log(`${event.timestamp} => ${event.category}: ${event.message}`);
+        // Example: "03:15 => angle: Tilt the device up slightly"
+      });
+      
+      // Count problems by category
+      const problemsByCategory = videoData.instructionEvents.reduce((acc, event) => {
+        acc[event.category] = (acc[event.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      console.log("Problems summary:", problemsByCategory);
+      // Example: { motion: 5, angle: 12, lighting: 2 }
+    } else {
+      console.log("Perfect recording! No issues detected.");
+    }
+  };
+
+  return (
+    <GuidedCameraView
+      onCameraClose={() => console.log("Camera closed")}
+      onVideoSave={handleVideoSave}
+    />
+  );
+}
+```
+
+### With Custom Update Interval
+
+```tsx
+import React from "react";
+import { GuidedCameraView } from "react-native-guided-camera";
+
+export default function App() {
+  return (
+    <GuidedCameraView
+      onCameraClose={() => console.log("Camera closed")}
+      metricsUpdateInterval={500} // Update metrics every 500ms instead of default 100ms
+    />
+  );
+}
+```
+
+### With Severity Level Filtering
+
+```tsx
+import React from "react";
+import { GuidedCameraView } from "react-native-guided-camera";
+
+export default function App() {
+  return (
+    <GuidedCameraView
+      onCameraClose={() => console.log("Camera closed")}
+      includeSeverityLevels={['error']} // Only include error-level instruction events
+      onVideoSave={(videoData) => {
+        // Will only receive critical errors, not warnings or info
+        console.log("Critical issues during recording:", videoData.instructionEvents);
+      }}
+    />
+  );
+}
+```
+
+### Only Warnings and Errors (No Info)
+
+```tsx
+import React from "react";
+import { GuidedCameraView } from "react-native-guided-camera";
+
+export default function App() {
+  return (
+    <GuidedCameraView
+      onCameraClose={() => console.log("Camera closed")}
+      includeSeverityLevels={['warning', 'error']} // Exclude info-level events
+      onVideoSave={(videoData) => {
+        // Will receive warnings and errors, but not informational messages
+        console.log("Issues during recording:", videoData.instructionEvents);
+      }}
+    />
+  );
+}
+```
+```
+
 ### Language Support
 
 The component supports three languages with full UI translation:
@@ -141,16 +240,6 @@ export function FrenchCamera() {
   );
 }
 ```
-
-### Arabic Font Support
-
-For optimal Arabic text rendering with IBM Plex Sans Arabic font, install the optional font package:
-
-```bash
-npm install @expo-google-fonts/ibm-plex-sans-arabic
-```
-
-The component will automatically use the Arabic fonts when the language is set to "arabic". If the font package is not installed, the component will gracefully fall back to system fonts while maintaining proper RTL (Right-to-Left) text direction.
 
 ### Translation Utilities
 
@@ -295,13 +384,15 @@ export default function CustomImplementation() {
 
 ### GuidedCameraViewProps
 
-| Prop            | Type                             | Default     | Description                                         |
-| --------------- | -------------------------------- | ----------- | --------------------------------------------------- |
-| `onCameraClose` | `() => void`                     | `undefined` | Callback when camera is closed                      |
-| `onScreen`      | `boolean`                        | `false`     | Show visual logs overlay on camera view             |
-| `terminalLogs`  | `boolean`                        | `false`     | Output metrics logs to console                      |
-| `onVideoSave`   | `(videoData: VideoData) => void` | `undefined` | Custom video save handler (bypasses default saving) |
-| `language`      | `SupportedLanguage`              | `'english'` | UI language ('english', 'arabic', 'french')         |
+| Prop                    | Type                             | Default     | Description                                                        |
+| ----------------------- | -------------------------------- | ----------- | ------------------------------------------------------------------ |
+| `onCameraClose`         | `() => void`                     | `undefined` | Callback when camera is closed                                     |
+| `onScreen`              | `boolean`                        | `false`     | Show visual logs overlay on camera view                            |
+| `terminalLogs`           | `boolean`                        | `false`     | Output metrics logs to console                                     |
+| `onVideoSave`            | `(videoData: VideoData) => void` | `undefined` | Custom video save handler (bypasses default saving)                |
+| `language`               | `SupportedLanguage`              | `'english'` | UI language ('english', 'arabic', 'french')                        |
+| `metricsUpdateInterval`  | `number`                         | `100`       | Metrics update interval in milliseconds (100ms-2000ms recommended) |
+| `includeSeverityLevels`  | `('info' \| 'warning' \| 'error')[]` | `['info', 'warning', 'error']` | Which severity levels to include in instruction events |
 
 ### SupportedLanguage Type
 
@@ -311,11 +402,23 @@ type SupportedLanguage = "english" | "arabic" | "french";
 
 ### VideoData Interface
 
-| Property   | Type     | Description                              |
-| ---------- | -------- | ---------------------------------------- |
-| `uri`      | `string` | Local file URI of the recorded video     |
-| `duration` | `number` | Recording duration in seconds (optional) |
-| `size`     | `number` | File size in bytes (optional)            |
+| Property            | Type                | Description                              |
+| ------------------- | ------------------- | ---------------------------------------- |
+| `uri`               | `string`            | Local file URI of the recorded video     |
+| `duration`          | `number`            | Recording duration in seconds (optional) |
+| `size`              | `number`            | File size in bytes (optional)            |
+| `instructionEvents` | `InstructionEvent[]`| Array of all instruction events that occurred during recording (optional) |
+
+### InstructionEvent Interface
+
+| Property      | Type                                            | Description                              |
+| ------------- | ----------------------------------------------- | ---------------------------------------- |
+| `timestamp`   | `string`                                        | Format: "MM:SS" relative to recording start |
+| `timestampMs` | `number`                                        | Absolute timestamp in milliseconds from recording start |
+| `category`    | `'motion' \| 'angle' \| 'speed' \| 'lighting' \| 'yaw' \| 'guidance'` | Type of instruction/problem detected |
+| `severity`    | `'info' \| 'warning' \| 'error'`                | Severity level of the instruction |
+| `message`     | `string`                                        | Human-readable instruction message |
+| `metrics`     | `object` (optional)                             | Detailed metrics at the time of instruction |
 
 ## Key Features
 

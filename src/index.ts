@@ -5,6 +5,7 @@ export type {
   GuidedCameraViewProps,
   VideoData,
   SupportedLanguage,
+  InstructionEvent,
 } from "./types";
 
 // Utility classes
@@ -48,9 +49,6 @@ export {
 
 // Translation utilities
 export { getTranslations, translations } from "./utils/translations";
-
-// Font utilities
-export { useArabicFonts, getArabicTextStyle } from "./utils/fonts";
 
 // Translation-aware message functions
 export { getAngleMessageTranslated } from "./utils/pitchDetector";

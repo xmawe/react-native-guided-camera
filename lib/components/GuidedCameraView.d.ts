@@ -6,6 +6,8 @@ interface GuidedCameraViewProps {
     terminalLogs?: boolean;
     onVideoSave?: (videoData: VideoData) => void;
     language?: SupportedLanguage;
+    metricsUpdateInterval?: number;
+    includeSeverityLevels?: ('info' | 'warning' | 'error')[];
 }
 declare const GuidedCameraView: React.FC<GuidedCameraViewProps>;
 export default GuidedCameraView;

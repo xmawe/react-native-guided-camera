@@ -57,9 +57,8 @@ import {
   getSpeedIcon,
 } from "../utils/fallbackSpeedDetector";
 
-import { VideoData, SupportedLanguage } from "../types";
+import { VideoData, SupportedLanguage, InstructionEvent } from "../types";
 import { getTranslations } from "../utils/translations";
-import { useArabicFonts, getArabicTextStyle } from "../utils/fonts";
 
 // SVG Icon Component
 const CubeIcon = ({
@@ -269,6 +268,8 @@ interface GuidedCameraViewProps {
   terminalLogs?: boolean;
   onVideoSave?: (videoData: VideoData) => void;
   language?: SupportedLanguage;
+  metricsUpdateInterval?: number; // Update interval in milliseconds (default: 100ms)
+  includeSeverityLevels?: ('info' | 'warning' | 'error')[]; // Which severity levels to include in instruction events (default: all)
 }
 
 const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
@@ -277,16 +278,14 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
   terminalLogs = false,
   onVideoSave,
   language = "english",
+  metricsUpdateInterval = 100, // Default 100ms update interval
+  includeSeverityLevels = ['info', 'warning', 'error'], // Default: include all severity levels
 }) => {
   const translations = getTranslations(language);
   const isRTL = language === "arabic";
-  const fontsLoaded = useArabicFonts();
 
   // Helper function to get text style with appropriate font
   const getTextStyle = (weight: "regular" | "bold" = "regular") => {
-    if (language === "arabic") {
-      return getArabicTextStyle(language, weight);
-    }
     return {
       fontWeight: (weight === "bold" ? "bold" : "normal") as "normal" | "bold",
       ...(isRTL && {
@@ -317,6 +316,8 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [instructionEvents, setInstructionEvents] = useState<InstructionEvent[]>([]);
+  const [lastInstructionTime, setLastInstructionTime] = useState<Record<string, number>>({});
 
   const [motionMetrics, setMotionMetrics] = useState<MotionMetrics>({
     score: 100,
@@ -394,6 +395,54 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     }
   };
 
+  // Helper function to record instruction events during recording
+  const recordInstructionEvent = (
+    category: InstructionEvent['category'],
+    severity: InstructionEvent['severity'],
+    message: string,
+    throttleMs: number = 2000 // Don't record same category more than once every 2 seconds
+  ) => {
+    if (!isRecording || recordingStartTime.current === 0) {
+      return; // Only record during active recording
+    }
+
+    // Check if this severity level should be included
+    if (!includeSeverityLevels.includes(severity)) {
+      return; // Skip if severity not included in filter
+    }
+
+    // Throttling: don't record the same category too frequently
+    const now = Date.now();
+    const lastTime = lastInstructionTime[category] || 0;
+    if (now - lastTime < throttleMs) {
+      return;
+    }
+
+    const elapsedMs = Date.now() - recordingStartTime.current;
+    const minutes = Math.floor(elapsedMs / 60000);
+    const seconds = Math.floor((elapsedMs % 60000) / 1000);
+    const timestamp = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    const instructionEvent: InstructionEvent = {
+      timestamp,
+      timestampMs: elapsedMs,
+      category,
+      severity,
+      message,
+      metrics: {
+        pitch: angleMetrics.pitch,
+        roll: angleMetrics.roll,
+        yaw: yawMetrics.yaw,
+        motionScore: motionMetrics.score,
+        speedKmh: speedMetrics.speedKmh,
+        brightness: lightingMetrics.meanLuminance,
+      },
+    };
+
+    setInstructionEvents(prev => [...prev, instructionEvent]);
+    setLastInstructionTime(prev => ({ ...prev, [category]: now }));
+  };
+
   // Yaw tracking state
   const [yawMetrics, setYawMetrics] = useState<YawMetrics>({
     yaw: 0,
@@ -433,7 +482,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     };
 
     yawDetectorRef.current = new YawDetector(handleYawChange, {
-      updateInterval: 100,
+      updateInterval: metricsUpdateInterval,
       yawTolerance: 5,
       smoothingFactor: 0.8,
     });
@@ -445,7 +494,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         yawDetectorRef.current.stop();
       }
     };
-  }, []);
+  }, [metricsUpdateInterval]);
 
   // Update guidance message when yaw metrics change
   useEffect(() => {
@@ -479,7 +528,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     };
 
     motionDetectorRef.current = new MotionDetector(handleMotionChange, {
-      updateInterval: 100,
+      updateInterval: metricsUpdateInterval,
       historySize: 8,
       excellentThreshold: 75, // Lowered from 85 - easier to get "excellent"
       goodThreshold: 60, // Lowered from 70 - easier to get "good"
@@ -497,7 +546,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         motionDetectorRef.current.stop();
       }
     };
-  }, []);
+  }, [metricsUpdateInterval]);
 
   // SpeedDetector effect for movement tracking
   useEffect(() => {
@@ -514,7 +563,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     const initSpeedDetector = async () => {
       try {
         speedDetectorRef.current = new SpeedDetector(handleSpeedChange, {
-          updateInterval: 1000,
+          updateInterval: Math.max(metricsUpdateInterval, 1000), // Speed detection minimum 1 second
           enableSensorFusion: true,
           movingThreshold: 0.3,
           smoothingFactor: 0.8,
@@ -533,7 +582,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         speedDetectorRef.current.stop();
       }
     };
-  }, []);
+  }, [metricsUpdateInterval]);
 
   const brightnessDetectorRef = useRef<RealtimeBrightnessDetector | null>(null);
 
@@ -550,7 +599,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
     brightnessDetectorRef.current = new RealtimeBrightnessDetector(
       handleLightingChange,
       {
-        updateInterval: 4000, // Ambient light sensor updates every 4 seconds
+        updateInterval: Math.max(metricsUpdateInterval * 4, 1000), // Brightness detection at least 1 second, typically 4x slower than other metrics
         enableTimeBasedEstimation: true,
         enableAmbientLightSensor: true, // Use ambient light sensor for better accuracy
         smoothingFactor: 0.9, // More smoothing for stable readings
@@ -566,7 +615,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         brightnessDetectorRef.current.stop();
       }
     };
-  }, [translations]); // Include translations to recreate detector when language changes
+  }, [translations, metricsUpdateInterval]); // Include translations and update interval to recreate detector when they change
 
   // Initialize pitch detector
   useEffect(() => {
@@ -605,7 +654,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       rollTolerance: 15,
       pitchTolerance: 15,
       pitchVertical: 90,
-      updateInterval: 100,
+      updateInterval: metricsUpdateInterval,
     });
 
     pitchDetectorRef.current.start();
@@ -618,7 +667,7 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         clearInterval(durationInterval.current);
       }
     };
-  }, []);
+  }, [metricsUpdateInterval]);
 
   // Pulse animation for recording button
   useEffect(() => {
@@ -650,6 +699,71 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
       }
     };
   }, [isRecording]);
+
+  // Monitor and record guidance messages during recording
+  useEffect(() => {
+    if (!isRecording) return;
+
+    // Record speed guidance messages
+    if (speedMetrics.isMoving && speedMetrics.movementType !== "stationary") {
+      recordInstructionEvent(
+        'speed',
+        'warning',
+        getSpeedRecommendationMessage(speedMetrics.speed, speedMetrics.isMoving, translations)
+      );
+    }
+
+    // Record motion guidance messages
+    if (!motionMetrics.isStable) {
+      recordInstructionEvent(
+        'motion',
+        motionMetrics.stability === "very_poor" ? 'error' : 'warning',
+        getMotionStabilityMessage(motionMetrics.stability, translations)
+      );
+    }
+
+    // Record angle guidance messages
+    if (!angleMetrics.isLevel) {
+      recordInstructionEvent(
+        'angle',
+        angleMetrics.severity === "major" ? 'warning' : 'info',
+        getAngleMessageTranslated(angleMetrics, translations)
+      );
+    }
+
+    // Record target angle guidance (only in guidance mode)
+    if (isGuidanceMode && guidanceMessage && guidanceMessage !== translations.perfectHoldSteady) {
+      recordInstructionEvent(
+        'guidance',
+        'info',
+        guidanceMessage
+      );
+    }
+
+    // Record yaw guidance (only in guidance mode with target)
+    if (isGuidanceMode && !yawMetrics.isOnTarget && targetAngle.yaw !== undefined) {
+      recordInstructionEvent(
+        'yaw',
+        'warning',
+        getYawMessageTranslated(yawMetrics, translations)
+      );
+    }
+
+  }, [
+    isRecording,
+    speedMetrics.isMoving,
+    speedMetrics.movementType,
+    speedMetrics.speed,
+    motionMetrics.isStable,
+    motionMetrics.stability,
+    angleMetrics.isLevel,
+    angleMetrics.severity,
+    isGuidanceMode,
+    guidanceMessage,
+    yawMetrics.isOnTarget,
+    targetAngle.yaw,
+    translations
+  ]);
 
   // Recording duration tracking
   useEffect(() => {
@@ -696,6 +810,10 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
 
         setIsGuidanceMode(true);
         setGuidanceMessage(translations.targetSet);
+
+        // Clear any previous instruction events and throttling state
+        setInstructionEvents([]);
+        setLastInstructionTime({});
 
         // Switch to video mode for recording
         setCameraMode("video");
@@ -758,10 +876,13 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
           const videoData: VideoData = {
             uri: recordedVideo.uri,
             duration: recordingDuration,
+            instructionEvents: instructionEvents, // Include all recorded instruction events
           };
 
           onVideoSave(videoData);
           setRecordedVideo(null);
+          setInstructionEvents([]); // Clear instruction events after saving
+          setLastInstructionTime({}); // Clear throttling state
           return;
         }
 
@@ -798,6 +919,8 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
 
   const discardVideo = () => {
     setRecordedVideo(null);
+    setInstructionEvents([]); // Clear instruction events when discarding video
+    setLastInstructionTime({}); // Clear throttling state
   };
 
   // Combined toggle function - like VideoRecorderApp
@@ -1252,12 +1375,14 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         mode={cameraMode}
       />
 
-      {/* Overlay content */}
-      <View style={StyleSheet.absoluteFillObject}>
-        {renderAngleIndicator()}
-        {renderBalanceIndicator()}
-        {renderCompassIndicator()}
-      </View>
+      {/* Overlay content - only show when recording */}
+      {isRecording && (
+        <View style={StyleSheet.absoluteFillObject}>
+          {renderAngleIndicator()}
+          {renderBalanceIndicator()}
+          {renderCompassIndicator()}
+        </View>
+      )}
 
       {/* Recording indicator */}
       {isRecording && (
@@ -1278,44 +1403,45 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         </View>
       )}
 
-      {/* Status bar */}
-      <View style={[styles.topBar, isRTL && styles.topBarRTL]}>
-        <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
-            {translations.pitch}
-          </Text>
-          <Text
-            style={[
-              styles.statusComment,
-              { color: calculateAngleColor(angleMetrics.severity) },
-              getTextStyle("bold"),
-            ]}
-          >
-            {angleMetrics.isLevel ? translations.level : translations.tilted}
-          </Text>
-          <Text style={[styles.statusValue, getTextStyle("bold")]}>
-            {Math.abs(angleMetrics.pitch).toFixed(1)}°
-          </Text>
-        </View>
-        <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
-            {translations.motionScore}
-          </Text>
-          <Text
-            style={[
-              styles.statusComment,
-              { color: getMotionColor(motionMetrics.stability) },
-              getTextStyle("bold"),
-            ]}
-          >
-            {getQualityTranslation(motionMetrics.stability)}
-          </Text>
-          <Text style={[styles.statusValue, getTextStyle("bold")]}>
-            {motionMetrics.score}
-          </Text>
-        </View>
-        {/* Distance indicator commented out */}
-        {/* <View style={styles.statusItem}>
+      {/* Status bar - only show when recording */}
+      {isRecording && (
+        <View style={[styles.topBar, isRTL && styles.topBarRTL]}>
+          <View style={styles.statusItem}>
+            <Text style={[styles.statusLabel, getTextStyle("bold")]}>
+              {translations.pitch}
+            </Text>
+            <Text
+              style={[
+                styles.statusComment,
+                { color: calculateAngleColor(angleMetrics.severity) },
+                getTextStyle("bold"),
+              ]}
+            >
+              {angleMetrics.isLevel ? translations.level : translations.tilted}
+            </Text>
+            <Text style={[styles.statusValue, getTextStyle("bold")]}>
+              {Math.abs(angleMetrics.pitch).toFixed(1)}°
+            </Text>
+          </View>
+          <View style={styles.statusItem}>
+            <Text style={[styles.statusLabel, getTextStyle("bold")]}>
+              {translations.motionScore}
+            </Text>
+            <Text
+              style={[
+                styles.statusComment,
+                { color: getMotionColor(motionMetrics.stability) },
+                getTextStyle("bold"),
+              ]}
+            >
+              {getQualityTranslation(motionMetrics.stability)}
+            </Text>
+            <Text style={[styles.statusValue, getTextStyle("bold")]}>
+              {motionMetrics.score}
+            </Text>
+          </View>
+          {/* Distance indicator commented out */}
+          {/* <View style={styles.statusItem}>
           <Text style={[styles.statusLabel, isRTL && styles.textRTL]}>
             {translations.distance}
           </Text>
@@ -1332,66 +1458,67 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
             4.32m
           </Text>
         </View> */}
-        {isGuidanceMode && targetAngle.yaw !== undefined && (
+          {isGuidanceMode && targetAngle.yaw !== undefined && (
+            <View style={styles.statusItem}>
+              <Text style={[styles.statusLabel, getTextStyle("bold")]}>
+                {translations.compass}
+              </Text>
+              <Text
+                style={[
+                  styles.statusComment,
+                  {
+                    color: yawMetrics.isOnTarget ? "#4CAF50" : "#FF9800",
+                  },
+                  getTextStyle("bold"),
+                ]}
+              >
+                {yawMetrics.isOnTarget
+                  ? translations.onTrack
+                  : translations.turnBody}
+              </Text>
+              <Text style={[styles.statusValue, getTextStyle("bold")]}>
+                {`${Math.round(yawMetrics.yaw)}°`}
+              </Text>
+            </View>
+          )}
           <View style={styles.statusItem}>
             <Text style={[styles.statusLabel, getTextStyle("bold")]}>
-              {translations.compass}
+              {translations.speed}
             </Text>
             <Text
               style={[
                 styles.statusComment,
-                {
-                  color: yawMetrics.isOnTarget ? "#4CAF50" : "#FF9800",
-                },
+                { color: getSpeedColor(speedMetrics.speed) },
                 getTextStyle("bold"),
               ]}
             >
-              {yawMetrics.isOnTarget
-                ? translations.onTrack
-                : translations.turnBody}
+              {speedMetrics.movementType === "stationary"
+                ? translations.stationary
+                : speedMetrics.movementType}
             </Text>
             <Text style={[styles.statusValue, getTextStyle("bold")]}>
-              {`${Math.round(yawMetrics.yaw)}°`}
+              {speedMetrics.speedKmh.toFixed(1)} km/h
             </Text>
           </View>
-        )}
-        <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
-            {translations.speed}
-          </Text>
-          <Text
-            style={[
-              styles.statusComment,
-              { color: getSpeedColor(speedMetrics.speed) },
-              getTextStyle("bold"),
-            ]}
-          >
-            {speedMetrics.movementType === "stationary"
-              ? translations.stationary
-              : speedMetrics.movementType}
-          </Text>
-          <Text style={[styles.statusValue, getTextStyle("bold")]}>
-            {speedMetrics.speedKmh.toFixed(1)} km/h
-          </Text>
+          <View style={styles.statusItem}>
+            <Text style={[styles.statusLabel, getTextStyle("bold")]}>
+              {translations.brightness}
+            </Text>
+            <Text
+              style={[
+                styles.statusComment,
+                { color: getLightingColor(lightingMetrics.quality) },
+                getTextStyle("bold"),
+              ]}
+            >
+              {getQualityTranslation(lightingMetrics.quality)}
+            </Text>
+            <Text style={[styles.statusValue, getTextStyle("bold")]}>
+              {Math.round(lightingMetrics.meanLuminance)}
+            </Text>
+          </View>
         </View>
-        <View style={styles.statusItem}>
-          <Text style={[styles.statusLabel, getTextStyle("bold")]}>
-            {translations.brightness}
-          </Text>
-          <Text
-            style={[
-              styles.statusComment,
-              { color: getLightingColor(lightingMetrics.quality) },
-              getTextStyle("bold"),
-            ]}
-          >
-            {getQualityTranslation(lightingMetrics.quality)}
-          </Text>
-          <Text style={[styles.statusValue, getTextStyle("bold")]}>
-            {Math.round(lightingMetrics.meanLuminance)}
-          </Text>
-        </View>
-      </View>
+      )}
 
       {/* Detection Frame */}
       {/* <View
@@ -1469,77 +1596,82 @@ const GuidedCameraView: React.FC<GuidedCameraViewProps> = ({
         />
       </View> */}
 
-      {/* Guidance message */}
-      <View style={styles.guidanceContainer}>
-        {/* Speed guidance - appears at top when active (most urgent) */}
-        {speedMetrics.isMoving &&
-          speedMetrics.movementType !== "stationary" && (
+      {/* Guidance message - only show when recording */}
+      {isRecording && (
+        <View style={styles.guidanceContainer}>
+          {/* Speed guidance - appears at top when active (most urgent) */}
+          {speedMetrics.isMoving &&
+            speedMetrics.movementType !== "stationary" && (
+              <View
+                style={[
+                  styles.guidanceItem,
+                  { backgroundColor: getSpeedColor(speedMetrics.speed) },
+                ]}
+              >
+                <Text style={[styles.guidanceText, getTextStyle("bold")]}>
+                  {getSpeedRecommendationMessage(
+                    speedMetrics.speed,
+                    speedMetrics.isMoving,
+                    translations
+                  )}
+                </Text>
+              </View>
+            )}
+
+          {/* Motion guidance - appears above angle guidance when unstable */}
+          {!motionMetrics.isStable && (
             <View
               style={[
                 styles.guidanceItem,
-                { backgroundColor: getSpeedColor(speedMetrics.speed) },
+                { backgroundColor: getMotionColor(motionMetrics.stability) },
               ]}
             >
               <Text style={[styles.guidanceText, getTextStyle("bold")]}>
-                {getSpeedRecommendationMessage(
-                  speedMetrics.speed,
-                  speedMetrics.isMoving,
+                {getMotionStabilityMessage(
+                  motionMetrics.stability,
                   translations
                 )}
               </Text>
             </View>
           )}
 
-        {/* Motion guidance - appears above angle guidance when unstable */}
-        {!motionMetrics.isStable && (
-          <View
-            style={[
-              styles.guidanceItem,
-              { backgroundColor: getMotionColor(motionMetrics.stability) },
-            ]}
-          >
-            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
-              {getMotionStabilityMessage(motionMetrics.stability, translations)}
-            </Text>
-          </View>
-        )}
+          {/* Target angle guidance - main guidance when in guidance mode */}
+          {isGuidanceMode && guidanceMessage && (
+            <View
+              style={[
+                styles.guidanceItem,
+                {
+                  backgroundColor: isAngleOnTarget(
+                    angleMetrics,
+                    yawMetrics,
+                    targetAngle
+                  )
+                    ? "#4CAF50"
+                    : "#FF9800",
+                },
+              ]}
+            >
+              <Text style={[styles.guidanceText, getTextStyle("bold")]}>
+                {guidanceMessage}
+              </Text>
+            </View>
+          )}
 
-        {/* Target angle guidance - main guidance when in guidance mode */}
-        {isGuidanceMode && guidanceMessage && (
-          <View
-            style={[
-              styles.guidanceItem,
-              {
-                backgroundColor: isAngleOnTarget(
-                  angleMetrics,
-                  yawMetrics,
-                  targetAngle
-                )
-                  ? "#4CAF50"
-                  : "#FF9800",
-              },
-            ]}
-          >
-            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
-              {guidanceMessage}
-            </Text>
-          </View>
-        )}
-
-        {/* Angle guidance - basic level guidance when not in guidance mode */}
-        {!isGuidanceMode && (
-          <View
-            style={[
-              styles.guidanceItem,
-              { backgroundColor: calculateAngleColor(angleMetrics.severity) },
-            ]}
-          >
-            <Text style={[styles.guidanceText, getTextStyle("bold")]}>
-              {getAngleMessageTranslated(angleMetrics, translations)}
-            </Text>
-          </View>
-        )}
-      </View>
+          {/* Angle guidance - basic level guidance when not in guidance mode */}
+          {!isGuidanceMode && (
+            <View
+              style={[
+                styles.guidanceItem,
+                { backgroundColor: calculateAngleColor(angleMetrics.severity) },
+              ]}
+            >
+              <Text style={[styles.guidanceText, getTextStyle("bold")]}>
+                {getAngleMessageTranslated(angleMetrics, translations)}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Bottom Controls */}
       <View style={styles.bottomControls}>

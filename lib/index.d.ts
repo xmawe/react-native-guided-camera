@@ -1,6 +1,6 @@
 import GuidedCameraView from "./components/GuidedCameraView";
 export { GuidedCameraView };
-export type { GuidedCameraViewProps, VideoData, SupportedLanguage, } from "./types";
+export type { GuidedCameraViewProps, VideoData, SupportedLanguage, InstructionEvent, } from "./types";
 export { PitchDetector } from "./utils/pitchDetector";
 export { YawDetector } from "./utils/yawDetector";
 export { MotionDetector } from "./utils/motionDetectorV2";
@@ -15,7 +15,6 @@ export { calculateAngleColor, getAngleMessage } from "./utils/pitchDetector";
 export { getYawColor, getYawMessage, shouldAllowRecordingYaw, } from "./utils/yawDetector";
 export { getSpeedColor, getSpeedMessage, shouldAllowRecordingSpeed, getSpeedIcon, } from "./utils/fallbackSpeedDetector";
 export { getTranslations, translations } from "./utils/translations";
-export { useArabicFonts, getArabicTextStyle } from "./utils/fonts";
 export { getAngleMessageTranslated } from "./utils/pitchDetector";
 export { getYawMessageTranslated } from "./utils/yawDetector";
 export { getMotionStabilityMessage } from "./utils/motionDetectorV2";
